@@ -11,3 +11,17 @@
 *.lai
 *.la
 *.a
+
+#windows solution
+*.sln
+*.suo
+*.user
+*.ncb
+debug
+release
+lua*/
+*.dll
+*.exp
+*.ilk
+*.lib
+*.pdb

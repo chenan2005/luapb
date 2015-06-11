@@ -1,3 +1,17 @@
+local Person={3, 4, 5}
+local t={}
+local mt={
+	__index=Person,
+	__newindex=function(tbl, key, value)
+		print "__newindex"
+	end
+}
+setmetatable(t, mt)
+
+print(t[1])
+
+io.read("*line")
+
 require("luapb");
 
 --package lm;
@@ -25,11 +39,12 @@ print("uid: " .. msg.uid);
 print("param: " .. msg.param);
 print("param1: " .. msg.param1);
 
-
 for i = 1, msg.param2:len() do
 	local value = msg.param2:get(i);
 	print("i: " .. i .. " value: " .. value); 
 end
+
+print(msg.param2[1])
 
 msg.param2[1] = "test"
 print("===== param2: " .. msg.param2:get(1))
@@ -37,6 +52,9 @@ print("===== param2: " .. msg.param2:get(1))
 msg.param2:set(2, "test2")
 print("===== param2: " .. msg.param2:get(2))
 
+--msg.param2[4] = "param2_4"
 
 print("str: " .. pb.tostring(msg));
 
+print("press enter to exit ...")
+io.read("*line")

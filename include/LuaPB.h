@@ -22,6 +22,10 @@ typedef struct tagluarepeatedmsg
 
 #define PB_REPEATED_MESSAGE_META "pb_repeated_meta"
 
+#ifdef WIN32
+extern "C" __declspec(dllexport) int luaopen_luapb(lua_State* L);
+#else
 extern "C" int luaopen_luapb(lua_State* L);
+#endif
 
 #endif

@@ -1,0 +1,21 @@
+package lm;
+message test {
+	required int32 uid = 1;
+	required int32 param = 2;
+	optional string param1 = 3;
+	repeated string param2 = 4;
+	extensions 1000 to 10000;
+};
+
+message test1 {
+	required test _test = 1;
+	repeated test _repeated_test = 2;
+};
+
+message test2 {
+	optional int32 uid = 1;
+}
+
+extend test {
+	optional test2 _test2 = 1000;
+}

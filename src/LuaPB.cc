@@ -163,7 +163,7 @@ static int pb_repeated_get(lua_State* L)
     const Reflection* reflection = message->GetReflection();
     luaL_argcheck(L, field != NULL, 1, "pb_repeated_get field not exist");
 
-	// -1 为了和lua的下标从一开始保持一致
+	// -1 为了和lua的下标从一开始保持一�?
 	int index = static_cast<int>(luaL_checkinteger(L, 2)) - 1;
 	luaL_argcheck(L, index >= 0, 2, "pb_repeated_get index expected >= 1");
 
@@ -483,7 +483,7 @@ static int pb_serializeToString(lua_State* L)
 	return 1;
 }
 
-static const struct luaL_reg lib[] =
+static const struct luaL_Reg lib[] =
 {
 	{"new", pb_new},
 	{"import", pb_import},
@@ -493,7 +493,7 @@ static const struct luaL_reg lib[] =
 	{NULL, NULL}
 };
 
-static const struct luaL_reg libm[] =
+static const struct luaL_Reg libm[] =
 {
 	{"__index", pb_get},
 	{"__newindex", pb_set},
@@ -501,7 +501,7 @@ static const struct luaL_reg libm[] =
 	{NULL, NULL}
 };
 
-static const struct luaL_reg repeatedlib[] = {
+static const struct luaL_Reg repeatedlib[] = {
 	{"add", pb_repeated_add},
 	{"len", pb_repeated_len},
 	{"get", pb_repeated_get},
@@ -512,7 +512,8 @@ static const struct luaL_reg repeatedlib[] = {
 int luaopen_luapb(lua_State* L)
 {
 	luaL_newmetatable(L, PB_REPEATED_MESSAGE_META); 
-	luaL_register(L, NULL, repeatedlib);
+	//luaL_register(L, NULL, repeatedlib);
+	luaL_setfuncs(L, repeatedlib, 0);
 
 	lua_pushstring(L, "__index");
 	lua_pushvalue(L, -2);
@@ -523,10 +524,12 @@ int luaopen_luapb(lua_State* L)
 	lua_settable(L, -3);
 
 	luaL_newmetatable(L, PB_MESSAGE_META);
-	luaL_register(L, NULL, libm);
+	//luaL_register(L, NULL, libm);
+	luaL_setfuncs(L, libm, 0);
 
-	luaL_register(L, PB_MESSAGE, lib);
+	//luaL_register(L, PB_MESSAGE, lib);
+	luaL_newlib(L, lib);
+	lua_setglobal(L, PB_MESSAGE);
+
 	return 1;
 }
-
-
