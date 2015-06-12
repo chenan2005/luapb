@@ -90,6 +90,16 @@ msg._test3:add().name="test3_first"
 msg._test3:add().name="test3_second"
 msg._test3:add().name="test3_third"
 msg._test3:get(1).name = "test3_modify"
+print(msg._test3:get(1).e)
+msg._test3:get(1).e = 6
+msg._test3:get(2).e = 1
+msg._test3:get(3).e = 2
+msg._test3:get(1).ee:add(3)
+msg._test3:get(1).ee:add(6)
+msg._test3:get(1).ee:add(1)
+msg._test3:get(1).ee:add(2)
+io.read("*line")
+--msg._test3:get(1).e = 100
 
 print("msg.tostring: \n" .. pb.tostring(msg));
 

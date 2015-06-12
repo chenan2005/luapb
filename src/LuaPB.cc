@@ -72,26 +72,37 @@ static int pb_repeated_add(lua_State* L)
     	Message* msg = reflection->AddMessage(message, field);
     	return push_message(L, msg, false);
     }
-    else if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32)
+    else if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT32)
     {
-    	int val = static_cast<int>(luaL_checkinteger(L, 2));
+    	int32 val = static_cast<int32>(luaL_checkinteger(L, 2));
         reflection->AddInt32(message, field, val);
     }
-    else if (field->type() == google::protobuf::FieldDescriptor::TYPE_INT64)
+    else if (field->type() == google::protobuf::FieldDescriptor::TYPE_INT64 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT64)
     {
-        long val = static_cast<long>(luaL_checknumber(L, 2));
+        int64 val = static_cast<int64>(luaL_checkinteger(L, 2));
         reflection->AddInt64(message, field, val);
     }
     else if(field->type() == google::protobuf::FieldDescriptor::TYPE_UINT32)
     {
-        unsigned int val = static_cast<unsigned int>(luaL_checknumber(L, 2));
+        uint32 val = static_cast<uint32>(luaL_checkinteger(L, 2));
         reflection->AddUInt32(message, field, val);
     }
     else if (field->type() == google::protobuf::FieldDescriptor::TYPE_UINT64)
     {
-        unsigned long val = static_cast<unsigned long>(luaL_checknumber(L, 2));
+        uint64 val = static_cast<uint64>(luaL_checkinteger(L, 2));
         reflection->AddUInt64(message, field, val);
     }
+	else if (field->type() == google::protobuf::FieldDescriptor::TYPE_ENUM)
+	{
+		int val = static_cast<int>(luaL_checkinteger(L, 2));
+		const EnumValueDescriptor* evd = field->enum_type()->FindValueByNumber(val);
+		if (!evd) 
+		{
+			luaL_argerror(L, (2), "pb_repeated_add error: invalid enum value!!");
+			return 0;
+		}
+		reflection->AddEnum(message, field, evd);
+	}
     else if(field->type() == google::protobuf::FieldDescriptor::TYPE_FLOAT)
     {
         float val = static_cast<float>(luaL_checknumber(L, 2));
@@ -105,7 +116,7 @@ static int pb_repeated_add(lua_State* L)
     else if(field->type() == google::protobuf::FieldDescriptor::TYPE_BOOL)
     {
         int val = static_cast<int>(luaL_checkinteger(L, 2));
-        reflection->AddBool(message, field, val);
+        reflection->AddBool(message, field, val != 0);
     }
     else if(field->type() == google::protobuf::FieldDescriptor::TYPE_STRING)
     {
@@ -167,9 +178,31 @@ static int pb_repeated_get(lua_State* L)
 	int index = static_cast<int>(luaL_checkinteger(L, 2)) - 1;
 	luaL_argcheck(L, index >= 0, 2, "pb_repeated_get index expected >= 1");
 
-	if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32)
+	if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT32)
 	{
 		lua_pushinteger(L, reflection->GetRepeatedInt32(*message, field, index));
+	}
+	else if (field->type() == google::protobuf::FieldDescriptor::TYPE_INT64 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT64)
+	{
+		lua_pushinteger(L, reflection->GetRepeatedInt64(*message, field, index));
+	}
+	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_UINT32)
+	{
+		lua_pushinteger(L, reflection->GetRepeatedUInt32(*message, field, index));
+	}
+	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_UINT64)
+	{
+		lua_pushinteger(L, reflection->GetRepeatedUInt64(*message, field, index));
+	}
+	else if (field->type() == google::protobuf::FieldDescriptor::TYPE_ENUM)
+	{
+		const EnumValueDescriptor* evd = reflection->GetRepeatedEnum(*message, field, index);
+		if (!evd)
+		{
+			luaL_argerror(L, 0, "pb_repeated_get error: invalid index!!!");
+			return 0;
+		}
+		lua_pushinteger(L, evd->number());
 	}
 	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_STRING)
 	{
@@ -178,10 +211,6 @@ static int pb_repeated_get(lua_State* L)
 	else if (field->type() == google::protobuf::FieldDescriptor::TYPE_BYTES)
 	{
 		lua_pushstring(L, reflection->GetRepeatedString(*message, field, index).data());
-	}
-	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_UINT32)
-	{
-		lua_pushinteger(L, reflection->GetRepeatedUInt32(*message, field, index));
 	}
 	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_FLOAT)
 	{
@@ -227,15 +256,36 @@ static int pb_repeated_set(lua_State* L)
 	int index = static_cast<int>(luaL_checkinteger(L, 2)) - 1;
 	luaL_argcheck(L, index >= 0, 2, "pb_repeated_set index expected >= 1");
 
-	if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32)
+	if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT32)
 	{
-		int val = static_cast<int>(luaL_checkinteger(L, 3));
+		int32 val = static_cast<int32>(luaL_checkinteger(L, 3));
 		reflection->SetRepeatedInt32(message, field, index, val);
+	}
+	if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT64 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT64)
+	{
+		int64 val = static_cast<int64>(luaL_checkinteger(L, 3));
+		reflection->SetRepeatedInt64(message, field, index, val);
 	}
 	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_UINT32)
 	{
-		unsigned int val = static_cast<unsigned int>(luaL_checkinteger(L, 3));
+		uint32 val = static_cast<uint32>(luaL_checkinteger(L, 3));
 		reflection->SetRepeatedUInt32(message, field, index, val);
+	}
+	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_UINT64)
+	{
+		uint64 val = static_cast<uint64>(luaL_checkinteger(L, 3));
+		reflection->SetRepeatedUInt64(message, field, index, val);
+	}
+	else if (field->type() == google::protobuf::FieldDescriptor::TYPE_ENUM)
+	{
+		int val = static_cast<int>(luaL_checkinteger(L, 3));
+		const EnumValueDescriptor* evd = field->enum_type()->FindValueByNumber(val);
+		if (!evd)
+		{
+			luaL_argerror(L, (3), "pb_repeated_set error: invalid enum value!!");
+			return 0;
+		}
+		reflection->SetRepeatedEnum(message, field, index, evd);
 	}
 	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_FLOAT)
 	{
@@ -250,7 +300,7 @@ static int pb_repeated_set(lua_State* L)
 	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_BOOL)
 	{
 		int val = static_cast<int>(lua_toboolean(L, 3));
-		reflection->SetRepeatedBool(message, field, index, val);
+		reflection->SetRepeatedBool(message, field, index, val != 0);
 	}
 	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_STRING)
 	{
@@ -321,7 +371,7 @@ static int pb_tostring(lua_State* L)
 
 inline static string get_extension_full_name(const string& msg_fullname, const string& extension_field_name)
 {
-	int dotIdx = msg_fullname.find_last_of('.');
+	int dotIdx = (int)msg_fullname.find_last_of('.');
 	if (dotIdx == string::npos)
 		return extension_field_name;
 	else
@@ -366,13 +416,13 @@ static int pb_get(lua_State* L)
     {
     	return push_repeated_msg(L, message, const_cast<FieldDescriptor*>(field));
     }
-    else if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32)
+    else if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT32)
 	{
 		lua_pushinteger(L, reflection->GetInt32(*message, field));
 	}
-    else if (field->type() == google::protobuf::FieldDescriptor::TYPE_INT64)
+    else if (field->type() == google::protobuf::FieldDescriptor::TYPE_INT64 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT64)
     {
-        lua_pushnumber(L, reflection->GetInt64(*message, field));
+        lua_pushinteger(L, reflection->GetInt64(*message, field));
     }
 	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_UINT32)
 	{
@@ -380,8 +430,17 @@ static int pb_get(lua_State* L)
 	}
     else if (field->type() == google::protobuf::FieldDescriptor::TYPE_UINT64)
     {
-        lua_pushnumber(L, reflection->GetUInt64(*message, field));
+        lua_pushinteger(L, reflection->GetUInt64(*message, field));
     }
+	else if (field->type() == google::protobuf::FieldDescriptor::TYPE_ENUM)
+	{
+		const EnumValueDescriptor* evd = reflection->GetEnum(*message, field);
+		if (evd) 
+		{
+			lua_pushinteger(L, evd->number());
+		}
+
+	}
 	else if(field->type() == google::protobuf::FieldDescriptor::TYPE_FLOAT)
 	{
 		 lua_pushnumber(L, reflection->GetFloat(*message, field));
@@ -443,26 +502,36 @@ static int pb_set(lua_State* L)
     	const char *str = luaL_checklstring(L, 3, &strlen);
         reflection->SetString(message, field, str);
     }
-    else if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32)
+    else if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT32 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT32)
     {
-        int val = static_cast<int>(luaL_checkinteger(L, 3));
+        int32 val = static_cast<int32>(luaL_checkinteger(L, 3));
         reflection->SetInt32(message, field, val);
     }
-    else if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT64)
+    else if(field->type() == google::protobuf::FieldDescriptor::TYPE_INT64 || field->type() == google::protobuf::FieldDescriptor::TYPE_SINT64)
     {
-        long val = static_cast<long>(luaL_checknumber(L, 3));
+        int64 val = static_cast<int64>(luaL_checkinteger(L, 3));
         reflection->SetInt64(message, field, val);
     }
     else if(field->type() == google::protobuf::FieldDescriptor::TYPE_UINT32)
     {
-        unsigned int val = static_cast<unsigned int>(luaL_checkinteger(L, 3));
+        uint32 val = static_cast<uint32>(luaL_checkinteger(L, 3));
         reflection->SetUInt32(message, field, val);
     }
     else if(field->type() == google::protobuf::FieldDescriptor::TYPE_UINT64)
     {
-        unsigned long val = static_cast<unsigned long>(luaL_checknumber(L, 3));
+        uint64 val = static_cast<uint64>(luaL_checkinteger(L, 3));
         reflection->SetUInt64(message, field, val);
     }
+	else if (field->type() == google::protobuf::FieldDescriptor::TYPE_ENUM)
+	{
+		int val = static_cast<int>(luaL_checkinteger(L, 3));
+		const EnumValueDescriptor* evd = field->enum_type()->FindValueByNumber(val);
+		if (!evd) {
+			luaL_argerror(L, (3), "pb_set error: invalid enum value!!");
+			return 0;
+		}
+		reflection->SetEnum(message, field, evd);
+	}
     else if(field->type() == google::protobuf::FieldDescriptor::TYPE_FLOAT)
     {
         float val = static_cast<float>(luaL_checknumber(L, 3));
@@ -476,7 +545,7 @@ static int pb_set(lua_State* L)
     else if(field->type() == google::protobuf::FieldDescriptor::TYPE_BOOL)
     {
         int val = static_cast<int>(luaL_checkinteger(L, 3));
-        reflection->SetBool(message, field, val);
+        reflection->SetBool(message, field, val != 0);
     }
     else
     {
@@ -494,7 +563,7 @@ static int pb_parseFromString(lua_State* L)
 
     size_t bin_len;
     const char* bin = static_cast<const char*>(	luaL_checklstring(L, 2, &bin_len));
-    message->ParseFromArray(bin, bin_len);
+    message->ParseFromArray(bin, (int)bin_len);
     return 0;
 }
 

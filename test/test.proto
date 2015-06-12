@@ -1,4 +1,12 @@
 package lm;
+
+enum eee {
+    e1 = 1;
+    e2 = 2;
+    e3 = 3;
+    e4 = 6;
+};
+
 message test {
 	required int32 uid = 1;
 	required int32 param = 2;
@@ -18,6 +26,8 @@ message test2 {
 
 message test3 {
 	optional string name = 1;
+	required eee e = 2;
+	repeated eee ee = 3;
 }
 
 extend test {
