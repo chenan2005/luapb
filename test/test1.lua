@@ -1,7 +1,9 @@
 local Person={3, 4, 5}
 local t={}
 local mt={
-	__index=Person,
+	__index=function(tbl, key)
+		return Person[key]
+	end,	
 	__newindex=function(tbl, key, value)
 		print "__newindex"
 	end
@@ -44,6 +46,7 @@ for i = 1, msg.param2:len() do
 	print("i: " .. i .. " value: " .. value); 
 end
 
+io.read("*line")
 print(msg.param2[1])
 
 msg.param2[1] = "test"

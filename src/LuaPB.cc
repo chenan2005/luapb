@@ -334,8 +334,25 @@ static int pb_get(lua_State* L)
     const Descriptor* descriptor = message->GetDescriptor();
     const Reflection* reflection = message->GetReflection();
     const FieldDescriptor* field = descriptor->FindFieldByName(field_name);
+	if (!field) {
+		string extension_name = descriptor->full_name();
+		int dotIdx = extension_name.find_last_of('.');
+		if (dotIdx == string.npos)
+			extension_name = field_name;
+		else
+			extension_name = extension_name.substr(0, dotIdx + 1) + field_name;
+		field = reflection->FindKnownExtensionByName();
+	}
+
     luaL_argcheck(L, (field != NULL), 2, "pb_get, field_name error");
 
+	if (field->is_extension())
+	{
+		if (field->is_repeated())
+		{
+			return push_repeated_msg(L, message, const_cast<FieldDescriptor*>(field));
+		}
+	}
     if (field->is_repeated())
     {
     	return push_repeated_msg(L, message, const_cast<FieldDescriptor*>(field));
