@@ -1,3 +1,4 @@
+--[[
 local Person={3, 4, 5}
 local t={}
 local mt={
@@ -8,22 +9,47 @@ local mt={
 		print "__newindex"
 	end
 }
+
 setmetatable(t, mt)
 
 print(t[1])
 
 io.read("*line")
+--]]
+
+
+local function bin2hex(s)
+    s=string.gsub(s,"(.)",function (x) return string.format("%02X ",string.byte(x)) end)
+    return s
+end
+
+local h2b = {
+    ["0"] = 0,
+    ["1"] = 1,
+    ["2"] = 2,
+    ["3"] = 3,
+    ["4"] = 4,
+    ["5"] = 5,
+    ["6"] = 6,
+    ["7"] = 7,
+    ["8"] = 8,
+    ["9"] = 9,
+    ["A"] = 10,
+    ["B"] = 11,
+    ["C"] = 12,
+    ["D"] = 13,
+    ["E"] = 14,
+    ["F"] = 15
+}
+
+local function hex2bin( hexstr )
+    local s = string.gsub(hexstr, "(.)(.)%s", function ( h, l )
+         return string.char(h2b[h]*16+h2b[l])
+    end)
+    return s
+end
 
 require("luapb");
-
---package lm;
---message test
---{
---	required int32 uid = 1;
---	required int32 param = 2;
---	optional string param1 = 3;
---	repeated string param2 = 4;
---};
 
 pb.import("test.proto");
 
@@ -46,8 +72,8 @@ for i = 1, msg.param2:len() do
 	print("i: " .. i .. " value: " .. value); 
 end
 
-io.read("*line")
-print(msg.param2[1])
+--io.read("*line")
+--print(msg.param2[1])
 
 msg.param2[1] = "test"
 print("===== param2: " .. msg.param2:get(1))
@@ -55,9 +81,21 @@ print("===== param2: " .. msg.param2:get(1))
 msg.param2:set(2, "test2")
 print("===== param2: " .. msg.param2:get(2))
 
---msg.param2[4] = "param2_4"
+msg["_test2"].uid = 23456
+print("===== _test2 (extension field): " .. pb.tostring(msg._test2))
 
-print("str: " .. pb.tostring(msg));
-
-print("press enter to exit ...")
 io.read("*line")
+
+msg._test3:add().name="test3_first"
+msg._test3:add().name="test3_second"
+msg._test3:add().name="test3_third"
+msg._test3:get(1).name = "test3_modify"
+
+print("msg.tostring: \n" .. pb.tostring(msg));
+
+msgdata = pb.serializeToString(msg);
+print("msg.serializeToString:" .. bin2hex(msgdata))
+
+local msg1 = pb.new("lm.test")
+pb.parseFromString(msg1, msgdata)
+print("msg1.parseFromString:" .. pb.tostring(msg1))

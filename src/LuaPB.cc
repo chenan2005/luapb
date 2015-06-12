@@ -319,6 +319,16 @@ static int pb_tostring(lua_State* L)
 	return 1;
 }
 
+inline static string get_extension_full_name(const string& msg_fullname, const string& extension_field_name)
+{
+	int dotIdx = msg_fullname.find_last_of('.');
+	if (dotIdx == string::npos)
+		return extension_field_name;
+	else
+		return msg_fullname.substr(0, dotIdx + 1) + extension_field_name;
+
+}
+
 static int pb_get(lua_State* L)
 {
 	lua_pbmsg* luamsg = (lua_pbmsg*)luaL_checkudata(L, 1, PB_MESSAGE_META);
@@ -335,13 +345,7 @@ static int pb_get(lua_State* L)
     const Reflection* reflection = message->GetReflection();
     const FieldDescriptor* field = descriptor->FindFieldByName(field_name);
 	if (!field) {
-		string extension_name = descriptor->full_name();
-		int dotIdx = extension_name.find_last_of('.');
-		if (dotIdx == string.npos)
-			extension_name = field_name;
-		else
-			extension_name = extension_name.substr(0, dotIdx + 1) + field_name;
-		field = reflection->FindKnownExtensionByName();
+		field = reflection->FindKnownExtensionByName(get_extension_full_name(descriptor->full_name(), field_name));
 	}
 
     luaL_argcheck(L, (field != NULL), 2, "pb_get, field_name error");
@@ -351,6 +355,11 @@ static int pb_get(lua_State* L)
 		if (field->is_repeated())
 		{
 			return push_repeated_msg(L, message, const_cast<FieldDescriptor*>(field));
+		}
+		else
+		{
+			Message* msg = reflection->MutableMessage(message, field, &(sProtoImporter.factory));
+			return push_message(L, msg, false);
 		}
 	}
     if (field->is_repeated())

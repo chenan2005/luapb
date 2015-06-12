@@ -16,6 +16,11 @@ message test2 {
 	optional int32 uid = 1;
 }
 
+message test3 {
+	optional string name = 1;
+}
+
 extend test {
 	optional test2 _test2 = 1000;
+	repeated test3 _test3 = 1002;
 }
