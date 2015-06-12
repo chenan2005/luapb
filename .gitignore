@@ -13,7 +13,6 @@
 *.a
 
 #windows solution
-*.sln
 *.suo
 *.user
 *.ncb
