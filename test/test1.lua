@@ -84,7 +84,7 @@ print("===== param2: " .. msg.param2:get(2))
 msg["_test2"].uid = 23456
 print("===== _test2 (extension field): " .. pb.tostring(msg._test2))
 
-io.read("*line")
+--io.read("*line")
 
 msg._test3:add().name="test3_first"
 msg._test3:add().name="test3_second"
@@ -98,7 +98,8 @@ msg._test3:get(1).ee:add(3)
 msg._test3:get(1).ee:add(6)
 msg._test3:get(1).ee:add(1)
 msg._test3:get(1).ee:add(2)
-io.read("*line")
+print("msg._test3:get(1).ee:get(2) : " .. msg._test3:get(1).ee:get(2))
+--io.read("*line")
 --msg._test3:get(1).e = 100
 
 print("msg.tostring: \n" .. pb.tostring(msg));
