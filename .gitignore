@@ -24,3 +24,7 @@ lua*/
 *.ilk
 *.lib
 *.pdb
+/Backup
+/luapb.VC.db
+/luapb.VC.VC.opendb
+/UpgradeLog.htm
